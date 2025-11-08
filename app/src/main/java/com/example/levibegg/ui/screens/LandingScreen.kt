@@ -7,6 +7,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -22,12 +23,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -43,8 +48,11 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun LandingScreen(
     onGetStarted: () -> Unit,
-    onHowItWorks: () -> Unit
+    // Kept for compatibility; not used for navigation anymore.
+    onHowItWorks: () -> Unit = {}
 ) {
+    var showHowItWorks by remember { mutableStateOf(false) }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color(0xFF02030A) // deep club-night background
@@ -55,7 +63,7 @@ fun LandingScreen(
                 .padding(horizontal = 24.dp),
             contentAlignment = Alignment.Center
         ) {
-            // Glowing animated orb in the back
+            // Glowing animated orb
             OrbBackground()
 
             // Foreground content
@@ -65,7 +73,6 @@ fun LandingScreen(
                     .wrapContentHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // "Where to.. Next?"
                 Text(
                     text = "Where to.. Next?",
                     color = Color(0xFF38BDF8),
@@ -77,7 +84,6 @@ fun LandingScreen(
 
                 Spacer(Modifier.height(24.dp))
 
-                // "lé Vibe" title
                 Text(
                     text = "lé Vibe",
                     color = Color(0xFF38BDF8),
@@ -90,7 +96,6 @@ fun LandingScreen(
 
                 Spacer(Modifier.height(28.dp))
 
-                // Tagline
                 Text(
                     text = "Browse events by genre and budget, preview the area, set one-tap reminders, and split costs with your crew all in one place.",
                     color = Color(0xFFE5E5E5),
@@ -108,7 +113,7 @@ fun LandingScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Get started
+                    // Get started -> goes to role gate
                     Button(
                         onClick = onGetStarted,
                         colors = ButtonDefaults.buttonColors(
@@ -128,12 +133,12 @@ fun LandingScreen(
                         )
                     }
 
-                    // How it works
+                    // How it works -> opens overlay only
                     Button(
-                        onClick = onHowItWorks,
+                        onClick = { showHowItWorks = true },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF111827),
-                            contentColor = Color.White
+                            containerColor = Color(0x33111827),
+                            contentColor = Color(0xFFE5E5E5)
                         ),
                         shape = CircleShape,
                         contentPadding = PaddingValues(
@@ -150,26 +155,150 @@ fun LandingScreen(
                 }
             }
 
-            // Subtle dark gradient overlay from bottom
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color(0xCC000000)
+            // Dim overlay + sheet when How it works is visible
+            if (showHowItWorks) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xCC000000)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .wrapContentHeight(),
+                        color = Color(0xFF050814),
+                        shape = RoundedCornerShape(24.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Header row with title + X
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = "How it works",
+                                        fontSize = 22.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                    Text(
+                                        text = "lé Vibe helps you discover events, plan the night, and arrive safely.",
+                                        fontSize = 13.sp,
+                                        color = Color(0xFF9CA3AF)
+                                    )
+                                }
+
+                                Text(
+                                    text = "✕",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color(0xFFF9FAFB),
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .clickable { showHowItWorks = false }
+                                        .background(Color(0x331F2937))
+                                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                                )
+                            }
+
+                            Spacer(Modifier.height(8.dp))
+
+                            // One-column feature list
+                            HowItWorksItem(
+                                title = "Swipe posters",
+                                body = "Browse curated gigs by genre, city, budget & popularity. Save favorites for later."
                             )
-                        )
-                    )
+                            HowItWorksItem(
+                                title = "One-tap reminders",
+                                body = "Get notified for ticket drops and event start times with one tap."
+                            )
+                            HowItWorksItem(
+                                title = "Safety & transit",
+                                body = "View quick safety notes and public transport / ride options near each event."
+                            )
+                            HowItWorksItem(
+                                title = "Area preview + rides",
+                                body = "Check the venue on the map and estimate rides to and from the event."
+                            )
+                            HowItWorksItem(
+                                title = "Plan with friends",
+                                body = "Share plans with your crew so everyone sees ride splits and details."
+                            )
+                            HowItWorksItem(
+                                title = "Budget filter",
+                                body = "Slide your max budget to instantly hide pricey events."
+                            )
+                            HowItWorksItem(
+                                title = "Organizer tools",
+                                body = "Verified organizers can post gigs and view basic engagement insights."
+                            )
+                            HowItWorksItem(
+                                title = "Artists",
+                                body = "Browse artists, follow them, and find gigs from creators you like."
+                            )
+
+                            Spacer(Modifier.height(4.dp))
+
+                            Text(
+                                text = "Tip: You can open this again anytime from the welcome screen.",
+                                fontSize = 11.sp,
+                                color = Color(0xFF6B7280)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Card-style row for each How it works bullet.
+ */
+@Composable
+private fun HowItWorksItem(
+    title: String,
+    body: String
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = Color(0xFF020818),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(
+                horizontal = 14.dp,
+                vertical = 10.dp
+            )
+        ) {
+            Text(
+                text = title,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFFF9FAFB)
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = body,
+                fontSize = 12.sp,
+                color = Color(0xFF9CA3AF),
+                lineHeight = 15.sp
             )
         }
     }
 }
 
 /**
- * Simple animated glowing orb background inspired by the web hero.
- * Declared as BoxScope extension so we can use align().
+ * Animated glowing orb background.
+ * Declared as BoxScope extension so we can call align().
  */
 @Composable
 private fun BoxScope.OrbBackground() {
