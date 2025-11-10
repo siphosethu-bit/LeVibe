@@ -13,6 +13,9 @@ import com.example.levibegg.ui.screens.EventsMapScreen
 import com.example.levibegg.ui.screens.LandingScreen
 import com.example.levibegg.ui.screens.OrganizerDashboardScreen
 import com.example.levibegg.ui.screens.RoleSelectScreen
+import com.example.levibegg.ui.components.GlassButton
+import com.example.levibegg.ui.components.GlassRoleCard
+
 
 // All routes for the app
 sealed class Screen(val route: String) {
@@ -43,7 +46,6 @@ fun LeVibeNav(
                 onGetStarted = {
                     navController.navigate(Screen.RoleSelect.route)
                 },
-                // If you have a separate "How it works", you can route it similarly:
                 onHowItWorks = {
                     navController.navigate(Screen.RoleSelect.route)
                 }
@@ -53,16 +55,16 @@ fun LeVibeNav(
         // Choose role
         composable(Screen.RoleSelect.route) {
             RoleSelectScreen(
-                // "Fan" -> map view
-                onFan = {
+                // "I'm looking for events" → map view
+                onSelectSeeker = {
                     navController.navigate(Screen.EventsMap.route)
                 },
-                // "Artist" -> artist dashboard
-                onArtist = {
+                // "I'm an Artist" → artist dashboard
+                onSelectArtist = {
                     navController.navigate(Screen.ArtistDashboard.route)
                 },
-                // "Organizer" -> organizer dashboard
-                onOrganizer = {
+                // "I'm an Event Organizer" → organizer dashboard
+                onSelectOrganizer = {
                     navController.navigate(Screen.OrganizerDashboard.route)
                 }
             )
@@ -76,12 +78,12 @@ fun LeVibeNav(
             )
         }
 
-        // Artists directory (like the site)
+        // Artists directory
         composable(Screen.Artists.route) {
             ArtistsScreen(
                 onBack = { navController.popBackStack() },
                 onArtistSelected = { artistId ->
-                    // TODO: later -> navController.navigate("artist/$artistId")
+                    // later: navController.navigate("artist/$artistId")
                 }
             )
         }

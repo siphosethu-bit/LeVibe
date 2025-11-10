@@ -8,7 +8,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,11 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * LéVibe glassmorphism button.
- *
- * - Frosted / glass look
- * - Border + subtle gradient
- * - Scale + glow on press for clear feedback
+ * Primary glassmorphism pill button.
+ * Used on the Landing screen for "Get started" / "How it works".
  */
 @Composable
 fun GlassButton(
@@ -40,31 +40,31 @@ fun GlassButton(
     val interactionSource = remember { MutableInteractionSource() }
     val pressed = interactionSource.collectIsPressedAsState().value
 
-    // Press animation
+    // Subtle press animation
     val scale = animateFloatAsState(
         targetValue = if (pressed) 0.96f else 1f,
         label = "glass_btn_scale"
     ).value
 
-    // Colors tuned to your dark theme
     val borderColor =
         if (isPrimary) Color(0xFF38BDF8).copy(alpha = 0.9f)
-        else Color.White.copy(alpha = 0.35f)
+        else Color.White.copy(alpha = 0.40f)
 
-    // Slightly stronger when pressed
     val backgroundBrush =
         if (isPrimary) {
+            // Slight glow / accent for main action
             Brush.linearGradient(
                 colors = listOf(
-                    Color(0xFF38BDF8).copy(alpha = if (pressed) 0.30f else 0.22f),
-                    Color(0xFF22C55E).copy(alpha = if (pressed) 0.18f else 0.10f)
+                    Color(0xFF38BDF8).copy(alpha = 0.30f),
+                    Color(0xFF22C55E).copy(alpha = 0.10f)
                 )
             )
         } else {
+            // Neutral frosted glass
             Brush.linearGradient(
                 colors = listOf(
-                    Color.White.copy(alpha = if (pressed) 0.10f else 0.06f),
-                    Color.White.copy(alpha = if (pressed) 0.06f else 0.02f)
+                    Color.White.copy(alpha = 0.10f),
+                    Color.White.copy(alpha = 0.03f)
                 )
             )
         }
@@ -74,17 +74,17 @@ fun GlassButton(
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
-                shape = RoundedCornerShape(30.dp)
+                shape = CircleShape
                 clip = true
             }
-            .background(brush = backgroundBrush)
+            .background(backgroundBrush)
             .border(
                 BorderStroke(1.dp, borderColor),
-                shape = RoundedCornerShape(30.dp)
+                shape = CircleShape
             )
             .clickable(
                 interactionSource = interactionSource,
-                indication = null, // use our own visual feedback instead of deprecated ripple
+                indication = null, // custom visual feedback only
                 onClick = onClick
             )
             .padding(horizontal = 22.dp, vertical = 10.dp),
@@ -97,5 +97,70 @@ fun GlassButton(
             fontWeight = if (isPrimary) FontWeight.SemiBold else FontWeight.Medium,
             style = MaterialTheme.typography.labelLarge
         )
+    }
+}
+
+/**
+ * Glass role selection card used on the RoleSelectScreen.
+ */
+@Composable
+fun GlassRoleCard(
+    title: String,
+    subtitle: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed = interactionSource.collectIsPressedAsState().value
+
+    val scale = animateFloatAsState(
+        targetValue = if (pressed) 0.97f else 1f,
+        label = "glass_role_scale"
+    ).value
+
+    val backgroundBrush = Brush.linearGradient(
+        colors = listOf(
+            Color.White.copy(alpha = 0.05f),
+            Color.White.copy(alpha = 0.015f)
+        )
+    )
+
+    val borderColor = Color.White.copy(alpha = 0.14f)
+
+    Box(
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                shape = RoundedCornerShape(18.dp)
+                clip = true
+            }
+            .background(backgroundBrush)
+            .border(
+                BorderStroke(1.dp, borderColor),
+                shape = RoundedCornerShape(18.dp)
+            )
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+            .padding(horizontal = 18.dp, vertical = 14.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Column {
+            Text(
+                text = title,
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.padding(top = 2.dp))
+            Text(
+                text = subtitle,
+                color = Color(0xFF9CA3AF),
+                fontSize = 12.sp
+            )
+        }
     }
 }

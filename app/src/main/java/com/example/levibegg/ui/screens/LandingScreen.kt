@@ -6,20 +6,19 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
@@ -27,56 +26,71 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.levibegg.R
 import com.example.levibegg.ui.components.GlassButton
+
+// Custom font families (files in res/font)
+val AmboeraScript = FontFamily(Font(R.font.amboera_script))
+val Amsterdam = FontFamily(Font(R.font.amsterdam_one))
 
 @Composable
 fun LandingScreen(
     onGetStarted: () -> Unit,
-    onHowItWorks: () -> Unit = {} // kept for compatibility, we use local sheet
+    // Optional external hook if you ever need it
+    onHowItWorks: () -> Unit = {}
 ) {
     var showHowItWorks by remember { mutableStateOf(false) }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFF02030A) // deep club-night background
+        color = Color(0xFF000000)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
-            contentAlignment = Alignment.Center
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF000000),
+                            Color(0xFF000000)
+                        )
+                    )
+                )
         ) {
             // Glowing animated orb behind everything
             OrbBackground()
 
-            // Foreground content
+            // Centered hero content
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight(),
+                    .wrapContentHeight()
+                    .align(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = "Where to.. Next?",
-                    color = Color(0xFF38BDF8),
+                    color = Color.White,
                     fontSize = 30.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = 2.sp,
+                    fontFamily = AmboeraScript,
                     textAlign = TextAlign.Center
                 )
 
@@ -84,11 +98,11 @@ fun LandingScreen(
 
                 Text(
                     text = "lé Vibe",
-                    color = Color(0xFF38BDF8),
-                    fontSize = 72.sp,
+                    color = Color(0xFFE5E5E5),
+                    fontSize = 80.sp,
                     fontWeight = FontWeight.ExtraBold,
+                    fontFamily = Amsterdam,
                     letterSpacing = 4.sp,
-                    lineHeight = 66.sp,
                     textAlign = TextAlign.Center
                 )
 
@@ -118,7 +132,7 @@ fun LandingScreen(
                         onClick = onGetStarted
                     )
 
-                    // Secondary CTA -> Opens in-app "How it works" sheet
+                    // Secondary CTA -> opens in-app "How it works" sheet
                     GlassButton(
                         text = "How it works",
                         onClick = {
@@ -129,7 +143,21 @@ fun LandingScreen(
                 }
             }
 
-            // Dim overlay + glass sheet when How it works is visible
+            // Bottom fade for depth so content anchors nicely
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color(0xCC000000)
+                            )
+                        )
+                    )
+            )
+
+            // How it works overlay
             if (showHowItWorks) {
                 Box(
                     modifier = Modifier
@@ -148,15 +176,13 @@ fun LandingScreen(
                             modifier = Modifier.padding(20.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            // Header row with title + X
+                            // Header row
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column(
-                                    modifier = Modifier.weight(1f)
-                                ) {
+                                Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = "How it works",
                                         fontSize = 22.sp,
@@ -169,7 +195,6 @@ fun LandingScreen(
                                         color = Color(0xFF9CA3AF)
                                     )
                                 }
-
                                 Text(
                                     text = "✕",
                                     fontSize = 20.sp,
@@ -179,10 +204,7 @@ fun LandingScreen(
                                         .clip(CircleShape)
                                         .background(Color(0x331F2937))
                                         .clickable { showHowItWorks = false }
-                                        .padding(
-                                            horizontal = 10.dp,
-                                            vertical = 4.dp
-                                        )
+                                        .padding(horizontal = 10.dp, vertical = 4.dp)
                                 )
                             }
 
@@ -198,7 +220,7 @@ fun LandingScreen(
                             )
                             HowItWorksItem(
                                 title = "Safety & transit",
-                                body = "View quick safety notes and public transport / ride options near each event."
+                                body = "View quick safety notes and ride options near each event."
                             )
                             HowItWorksItem(
                                 title = "Area preview + rides",
@@ -206,7 +228,7 @@ fun LandingScreen(
                             )
                             HowItWorksItem(
                                 title = "Plan with friends",
-                                body = "Share plans with your crew so everyone sees ride splits and details."
+                                body = "Share plans so everyone sees ride splits and details."
                             )
                             HowItWorksItem(
                                 title = "Budget filter",
@@ -214,11 +236,11 @@ fun LandingScreen(
                             )
                             HowItWorksItem(
                                 title = "Organizer tools",
-                                body = "Verified organizers can post gigs and view basic engagement insights."
+                                body = "Verified organizers can post gigs and view engagement."
                             )
                             HowItWorksItem(
                                 title = "Artists",
-                                body = "Browse artists, follow them, and find gigs from creators you like."
+                                body = "Follow artists and never miss their next set."
                             )
 
                             Spacer(Modifier.height(4.dp))
@@ -236,9 +258,6 @@ fun LandingScreen(
     }
 }
 
-/**
- * Card-style row for each How it works bullet.
- */
 @Composable
 private fun HowItWorksItem(
     title: String,
@@ -250,10 +269,7 @@ private fun HowItWorksItem(
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
-            modifier = Modifier.padding(
-                horizontal = 14.dp,
-                vertical = 10.dp
-            )
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
             Text(
                 text = title,
@@ -273,26 +289,25 @@ private fun HowItWorksItem(
 }
 
 /**
- * Animated glowing orb background.
- * Declared as BoxScope extension so we can call align().
+ * Animated glowing orb background behind the hero.
  */
 @Composable
 private fun BoxScope.OrbBackground() {
     val infinite = rememberInfiniteTransition(label = "orb")
 
-    val scale by infinite.animateFloat(
-        initialValue = 0.92f,
-        targetValue = 1.08f,
+    val pulse by infinite.animateFloat(
+        initialValue = 0.9f,
+        targetValue = 1.1f,
         animationSpec = infiniteRepeatable(
             animation = tween(2600, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
-        label = "orb-scale"
+        label = "orb-pulse"
     )
 
-    val alpha by infinite.animateFloat(
-        initialValue = 0.32f,
-        targetValue = 0.6f,
+    val glowAlpha by infinite.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 0.9f,
         animationSpec = infiniteRepeatable(
             animation = tween(2600, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
@@ -300,24 +315,124 @@ private fun BoxScope.OrbBackground() {
         label = "orb-alpha"
     )
 
-    Box(
-        modifier = Modifier
-            .size(420.dp)
-            .align(Alignment.Center)
-            .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale
-            )
-            .clip(CircleShape)
-            .background(
-                Brush.radialGradient(
-                    colors = listOf(
-                        Color(0xFF38BDF8),
-                        Color(0xFF0F172A),
-                        Color(0xFF02030A)
-                    )
-                )
-            )
-            .alpha(alpha)
+    val driftX by infinite.animateFloat(
+        initialValue = -20f,
+        targetValue = 20f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "orb-drift-x"
     )
+
+    val driftY by infinite.animateFloat(
+        initialValue = 14f,
+        targetValue = -14f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(5200, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "orb-drift-y"
+    )
+
+    val morph by infinite.animateFloat(
+        initialValue = 1.0f,
+        targetValue = 2.0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2600, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "orb-morph"
+    )
+
+    Canvas(
+        modifier = Modifier
+            .fillMaxSize()
+            .align(Alignment.Center)
+    ) {
+        val center = Offset(
+            x = size.width / 2f,
+            y = size.height * 0.40f
+        )
+
+        val baseRadius = size.minDimension * 0.35f
+
+        val auraR = baseRadius * 2.2f * pulse
+        val ringR = baseRadius * 1.4f * pulse
+        val innerR = baseRadius * 0.9f * pulse
+        val highlightR = baseRadius * 0.55f * pulse
+
+        fun ovalSize(r: Float) = Size(
+            width = r * 2f * morph,
+            height = r * 2f
+        )
+
+        // Outer aura
+        drawOval(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    Color(0x802196F3),
+                    Color(0x402196F3),
+                    Color.Transparent
+                ),
+                center = center,
+                radius = auraR
+            ),
+            topLeft = Offset(center.x - auraR * morph, center.y - auraR),
+            size = ovalSize(auraR),
+            alpha = glowAlpha
+        )
+
+        // Neon ring
+        drawOval(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    Color.Transparent,
+                    Color(0xFFA855F7),
+                    Color(0xFFA855F7),
+                    Color.Transparent
+                ),
+                center = center,
+                radius = ringR
+            ),
+            topLeft = Offset(center.x - ringR * morph, center.y - ringR),
+            size = ovalSize(ringR),
+            alpha = glowAlpha
+        )
+
+        // Inner core
+        drawOval(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    Color(0xFF000000),
+                    Color(0xCC000000),
+                    Color.Transparent
+                ),
+                center = center,
+                radius = innerR
+            ),
+            topLeft = Offset(center.x - innerR * morph, center.y - innerR),
+            size = ovalSize(innerR)
+        )
+
+        // Moving highlight
+        val hCenter = Offset(
+            x = center.x + driftX,
+            y = center.y + driftY
+        )
+
+        drawOval(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    Color(0x66FFFFFF),
+                    Color.Transparent
+                ),
+                center = hCenter,
+                radius = highlightR
+            ),
+            topLeft = Offset(hCenter.x - highlightR * morph, hCenter.y - highlightR),
+            size = ovalSize(highlightR),
+            alpha = 0.35f
+        )
+    }
 }
