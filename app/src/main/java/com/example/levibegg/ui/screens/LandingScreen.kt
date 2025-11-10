@@ -24,8 +24,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,12 +42,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.levibegg.ui.components.GlassButton
 
 @Composable
 fun LandingScreen(
     onGetStarted: () -> Unit,
-    // Kept for compatibility; not used for navigation anymore.
-    onHowItWorks: () -> Unit = {}
+    onHowItWorks: () -> Unit = {} // kept for compatibility, we use local sheet
 ) {
     var showHowItWorks by remember { mutableStateOf(false) }
 
@@ -63,7 +61,7 @@ fun LandingScreen(
                 .padding(horizontal = 24.dp),
             contentAlignment = Alignment.Center
         ) {
-            // Glowing animated orb
+            // Glowing animated orb behind everything
             OrbBackground()
 
             // Foreground content
@@ -107,55 +105,31 @@ fun LandingScreen(
 
                 Spacer(Modifier.height(32.dp))
 
-                // Buttons row
+                // Glass buttons row
                 Row(
                     modifier = Modifier.wrapContentWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Get started -> goes to role gate
-                    Button(
-                        onClick = onGetStarted,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor = Color(0xFF111827)
-                        ),
-                        shape = CircleShape,
-                        contentPadding = PaddingValues(
-                            horizontal = 24.dp,
-                            vertical = 10.dp
-                        )
-                    ) {
-                        Text(
-                            text = "Get started",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
+                    // Primary CTA -> Role gate
+                    GlassButton(
+                        text = "Get started",
+                        isPrimary = true,
+                        onClick = onGetStarted
+                    )
 
-                    // How it works -> opens overlay only
-                    Button(
-                        onClick = { showHowItWorks = true },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0x33111827),
-                            contentColor = Color(0xFFE5E5E5)
-                        ),
-                        shape = CircleShape,
-                        contentPadding = PaddingValues(
-                            horizontal = 24.dp,
-                            vertical = 10.dp
-                        )
-                    ) {
-                        Text(
-                            text = "How it works",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
+                    // Secondary CTA -> Opens in-app "How it works" sheet
+                    GlassButton(
+                        text = "How it works",
+                        onClick = {
+                            showHowItWorks = true
+                            onHowItWorks()
+                        }
+                    )
                 }
             }
 
-            // Dim overlay + sheet when How it works is visible
+            // Dim overlay + glass sheet when How it works is visible
             if (showHowItWorks) {
                 Box(
                     modifier = Modifier
@@ -203,15 +177,17 @@ fun LandingScreen(
                                     color = Color(0xFFF9FAFB),
                                     modifier = Modifier
                                         .clip(CircleShape)
-                                        .clickable { showHowItWorks = false }
                                         .background(Color(0x331F2937))
-                                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                                        .clickable { showHowItWorks = false }
+                                        .padding(
+                                            horizontal = 10.dp,
+                                            vertical = 4.dp
+                                        )
                                 )
                             }
 
                             Spacer(Modifier.height(8.dp))
 
-                            // One-column feature list
                             HowItWorksItem(
                                 title = "Swipe posters",
                                 body = "Browse curated gigs by genre, city, budget & popularity. Save favorites for later."
