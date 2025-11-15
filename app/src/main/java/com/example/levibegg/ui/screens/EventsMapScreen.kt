@@ -3,21 +3,23 @@ package com.example.levibegg.ui.screens
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,11 +31,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.levibegg.ui.components.GlassButton
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -112,6 +117,7 @@ fun EventsMapScreen(
 
     var selectedCity by remember { mutableStateOf(cityOptions.first()) }
     var selectedEvent by remember { mutableStateOf<MapEvent?>(null) }
+    var showDetails by remember { mutableStateOf(false) }
 
     // Camera state
     val cameraPositionState: CameraPositionState = rememberCameraPositionState {
@@ -127,10 +133,11 @@ fun EventsMapScreen(
         else events.filter { it.city == selectedCity }
     }
 
-    // When city changes: adjust selection + animate camera
+    // When city changes: adjust selection + animate camera (and close overlay)
     LaunchedEffect(selectedCity) {
         val targetEvent = filteredEvents.firstOrNull()
         selectedEvent = targetEvent
+        showDetails = false
 
         val (targetLatLng, zoom) =
             if (selectedCity == "All South Africa" || targetEvent == null) {
@@ -161,99 +168,112 @@ fun EventsMapScreen(
             .background(Color(0xFF02030A)),
         color = Color(0xFF02030A)
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) {
 
-            // TOP BAR (title + Artists nav)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 18.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Simple text back action (optional)
-                Text(
-                    text = "LeVibe • Explore events",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.clickable { onBack() }
-                )
+            // HOME LAYOUT: Top bar + map + bottom console
+            Column(modifier = Modifier.fillMaxSize()) {
 
+                // TOP BAR (title + Artists nav)
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 18.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Simple text back action (optional)
                     Text(
-                        text = "Artists",
+                        text = "LeVibe • Explore events",
                         color = Color.White,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.clickable { onArtistsClick() }
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.clickable { onBack() }
                     )
-                }
-            }
 
-            // MAP SECTION
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.55f)
-            ) {
-                GoogleMap(
-                    modifier = Modifier.fillMaxSize(),
-                    cameraPositionState = cameraPositionState,
-                    uiSettings = MapUiSettings(
-                        zoomControlsEnabled = false,
-                        compassEnabled = false,
-                        mapToolbarEnabled = false
-                    ),
-                    properties = MapProperties(
-                        isMyLocationEnabled = false
-                    )
-                ) {
-                    filteredEvents.forEach { event ->
-                        Marker(
-                            state = MarkerState(position = event.position),
-                            title = event.title,
-                            snippet = "${event.venue} • ${event.city}",
-                            onClick = {
-                                selectedEvent = event
-                                true
-                            },
-                            icon = BitmapDescriptorFactory.defaultMarker(
-                                if (selectedEvent?.id == event.id) 204f // highlight
-                                else 0f
-                            )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Artists",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.clickable { onArtistsClick() }
                         )
                     }
                 }
 
-                // City selector chip + dropdown
-                CityFilterChip(
+                // MAP SECTION
+                Box(
                     modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(16.dp),
-                    cityOptions = cityOptions,
-                    selectedCity = selectedCity,
-                    onCitySelected = { selectedCity = it }
+                        .fillMaxWidth()
+                        .weight(0.55f)
+                ) {
+                    GoogleMap(
+                        modifier = Modifier.fillMaxSize(),
+                        cameraPositionState = cameraPositionState,
+                        uiSettings = MapUiSettings(
+                            zoomControlsEnabled = false,
+                            compassEnabled = false,
+                            mapToolbarEnabled = false
+                        ),
+                        properties = MapProperties(
+                            isMyLocationEnabled = false
+                        )
+                    ) {
+                        filteredEvents.forEach { event ->
+                            Marker(
+                                state = MarkerState(position = event.position),
+                                title = event.title,
+                                snippet = "${event.venue} • ${event.city}",
+                                onClick = {
+                                    selectedEvent = event
+                                    showDetails = true       // open glass details overlay
+                                    true
+                                },
+                                icon = BitmapDescriptorFactory.defaultMarker(
+                                    if (selectedEvent?.id == event.id) 204f // highlight
+                                    else 0f
+                                )
+                            )
+                        }
+                    }
+
+                    // City selector chip + dropdown (glass style)
+                    CityFilterChip(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(16.dp),
+                        cityOptions = cityOptions,
+                        selectedCity = selectedCity,
+                        onCitySelected = { selectedCity = it }
+                    )
+                }
+
+                // BOTTOM CONSOLE
+                BottomEventConsole(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(0.45f),
+                    selectedEvent = selectedEvent,
+                    hasEvents = filteredEvents.isNotEmpty()
                 )
             }
 
-            // BOTTOM CONSOLE
-            BottomEventConsole(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.45f),
-                selectedEvent = selectedEvent,
-                hasEvents = filteredEvents.isNotEmpty()
-            )
+            // EVENT DETAILS OVERLAY (glass card) – appears over everything
+            if (showDetails && selectedEvent != null) {
+                EventDetailsOverlay(
+                    event = selectedEvent!!,
+                    onClose = { showDetails = false }
+                )
+            }
         }
     }
 }
 
 /**
- * "All South Africa" chip with dropdown city list.
+ * "All South Africa" chip with dropdown city list – glass styled.
  */
 @Composable
 private fun CityFilterChip(
@@ -265,11 +285,22 @@ private fun CityFilterChip(
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
+        // Trigger pill (the "All South Africa" chip)
         Box(
             modifier = Modifier
+                .clip(RoundedCornerShape(50))
                 .background(
-                    color = Color(0xCC111827),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(50)
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            // much darker so it stands out on the map
+                            Color(0xFF020617).copy(alpha = 0.96f),
+                            Color(0xFF020617).copy(alpha = 0.90f)
+                        )
+                    )
+                )
+                .border(
+                    BorderStroke(1.dp, Color(0xFF38BDF8).copy(alpha = 0.85f)),
+                    shape = RoundedCornerShape(50)
                 )
                 .clickable { expanded = true }
                 .padding(horizontal = 14.dp, vertical = 8.dp),
@@ -283,10 +314,11 @@ private fun CityFilterChip(
             )
         }
 
+        // Dropdown list
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            containerColor = Color(0xFF020814)
+            containerColor = Color(0xF0101117)
         ) {
             cityOptions.forEach { city ->
                 DropdownMenuItem(
@@ -307,8 +339,9 @@ private fun CityFilterChip(
     }
 }
 
+
 /**
- * Bottom glass-style console: hint + selected event + Rides/Tickets/Safety tabs.
+ * Bottom glass-style console: hint + selected event + glass tabs.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -329,7 +362,7 @@ private fun BottomEventConsole(
                 .fillMaxSize()
                 .background(
                     color = Color(0xF0101117),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(
+                    shape = RoundedCornerShape(
                         topStart = 26.dp,
                         topEnd = 26.dp
                     )
@@ -351,6 +384,7 @@ private fun BottomEventConsole(
                     fontSize = 12.sp
                 )
 
+                // Glass preview card for selected event
                 AnimatedVisibility(
                     visible = selectedEvent != null && hasEvents,
                     enter = fadeIn(),
@@ -360,9 +394,13 @@ private fun BottomEventConsole(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFF020814)
+                                containerColor = Color(0x70111827)
                             ),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp)
+                            shape = RoundedCornerShape(18.dp),
+                            border = BorderStroke(
+                                1.dp,
+                                Color.White.copy(alpha = 0.16f)
+                            )
                         ) {
                             Column(
                                 modifier = Modifier.padding(14.dp),
@@ -392,34 +430,26 @@ private fun BottomEventConsole(
                     }
                 }
 
-                // Tabs
+                // GLASS TABS (Rides / Tickets / Safety)
                 if (hasEvents) {
-                    SingleChoiceSegmentedButtonRow(
-                        modifier = Modifier.fillMaxWidth()
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         tabs.forEachIndexed { index, label ->
-                            SegmentedButton(
-                                selected = selectedTabIndex == index,
-                                onClick = { selectedTabIndex = index },
-                                shape = SegmentedButtonDefaults.itemShape(
-                                    index = index,
-                                    count = tabs.size
-                                ),
-                                colors = SegmentedButtonDefaults.colors(
-                                    activeContainerColor = Color.White,
-                                    activeContentColor = Color(0xFF111827),
-                                    inactiveContainerColor = Color(0x00111827),
-                                    inactiveContentColor = Color(0xFFE5E5E5)
-                                )
+                            GlassButton(
+                                text = label,
+                                modifier = Modifier.weight(1f),
+                                isPrimary = selectedTabIndex == index
                             ) {
-                                Text(
-                                    text = label,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
+                                selectedTabIndex = index
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     when (selectedTabIndex) {
                         0 -> RidesContent()
@@ -427,6 +457,120 @@ private fun BottomEventConsole(
                         2 -> SafetyContent()
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Glass event details overlay that appears when a pin is selected.
+ * Shows a large event card with an X button to close.
+ */
+@Composable
+private fun EventDetailsOverlay(
+    event: MapEvent,
+    onClose: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.65f))
+    ) {
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 24.dp)
+                .clip(RoundedCornerShape(28.dp))
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xCC111827),
+                            Color(0x99111827),
+                            Color(0x66111827)
+                        )
+                    )
+                )
+        ) {
+            // TOP HERO AREA (image placeholder + close button)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(190.dp)
+                    .background(Color.DarkGray)
+            ) {
+                IconButton(
+                    onClick = onClose,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close event details",
+                        tint = Color.White
+                    )
+                }
+
+                // TODO: Add event hero image here (AsyncImage / painterResource)
+            }
+
+            Column(
+                modifier = Modifier.padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = event.title,
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Text(
+                    text = "${event.venue} • ${event.city}",
+                    color = Color(0xFFCBD5F5),
+                    fontSize = 13.sp
+                )
+
+                Text(
+                    text = "${event.dateLabel} • ${event.priceFrom}",
+                    color = Color(0xFF9CA3AF),
+                    fontSize = 12.sp
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Text(
+                    text = "Plan your night, share with friends, and open directions or tickets with a tap.",
+                    color = Color(0xFF9CA3AF),
+                    fontSize = 11.sp
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    GlassButton(
+                        text = "Open in Google Maps",
+                        modifier = Modifier.weight(1f),
+                        isPrimary = true
+                    ) {
+                        // TODO: Deep link into Google Maps with event location
+                    }
+
+                    GlassButton(
+                        text = "Buy Ticket",
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        // TODO: Open ticketing URL for this event
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
             }
         }
     }
@@ -452,8 +596,17 @@ private fun RideRow(label: String, meta: String) {
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = Color(0xFF020814),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp)
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.06f),
+                        Color.White.copy(alpha = 0.015f)
+                    )
+                ),
+                shape = RoundedCornerShape(14.dp)
+            )
+            .border(
+                BorderStroke(1.dp, Color.White.copy(alpha = 0.14f)),
+                shape = RoundedCornerShape(14.dp)
             )
             .padding(horizontal = 12.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -472,16 +625,13 @@ private fun RideRow(label: String, meta: String) {
                 fontSize = 10.sp
             )
         }
-        Button(
-            onClick = { /* hook up later */ },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White,
-                contentColor = Color(0xFF111827)
-            ),
-            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(999.dp)
+
+        // Glass-style "Open" button
+        GlassButton(
+            text = "Open",
+            isPrimary = true
         ) {
-            Text("Open", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+            // TODO: hook up deeplink later
         }
     }
 }
@@ -497,9 +647,10 @@ private fun TicketsContent() {
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF020814)
+                containerColor = Color(0x70111827)
             ),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f))
         ) {
             Column(
                 modifier = Modifier.padding(12.dp),
@@ -517,16 +668,14 @@ private fun TicketsContent() {
                     fontSize = 10.sp
                 )
                 Spacer(Modifier.height(4.dp))
-                Button(
-                    onClick = { /* ticket link */ },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = Color(0xFF111827)
-                    ),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(999.dp),
-                    contentPadding = PaddingValues(horizontal = 18.dp, vertical = 6.dp)
+
+                // Glass "Buy Ticket" button
+                GlassButton(
+                    text = "Buy Ticket",
+                    isPrimary = true,
+                    modifier = Modifier.padding(top = 4.dp)
                 ) {
-                    Text("Buy Ticket", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    // TODO: ticket link
                 }
             }
         }
@@ -544,9 +693,10 @@ private fun SafetyContent() {
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF020814)
+                containerColor = Color(0x70111827)
             ),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f))
         ) {
             Column(
                 modifier = Modifier.padding(12.dp),

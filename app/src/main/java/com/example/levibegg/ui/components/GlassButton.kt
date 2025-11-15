@@ -27,8 +27,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Primary glassmorphism pill button.
- * Used on the Landing screen for "Get started" / "How it works".
+ * UNIVERSAL GLASS BUTTON
+ * Used across Events, Landing, Tickets, Rides, etc.
+ *
+ * - Frosted glass background
+ * - Subtle neon border
+ * - Press animation (squish)
+ * - Perfect for dark UI themes
  */
 @Composable
 fun GlassButton(
@@ -40,31 +45,31 @@ fun GlassButton(
     val interactionSource = remember { MutableInteractionSource() }
     val pressed = interactionSource.collectIsPressedAsState().value
 
-    // Subtle press animation
+    // Press animation effect
     val scale = animateFloatAsState(
         targetValue = if (pressed) 0.96f else 1f,
         label = "glass_btn_scale"
     ).value
 
+    // Border color: blue glow for primary, white glow for neutral
     val borderColor =
-        if (isPrimary) Color(0xFF38BDF8).copy(alpha = 0.9f)
-        else Color.White.copy(alpha = 0.40f)
+        if (isPrimary) Color(0xFF38BDF8).copy(alpha = 0.70f)
+        else Color.White.copy(alpha = 0.28f)
 
+    // Background gradient: soft glass with tint
     val backgroundBrush =
         if (isPrimary) {
-            // Slight glow / accent for main action
             Brush.linearGradient(
                 colors = listOf(
-                    Color(0xFF38BDF8).copy(alpha = 0.30f),
-                    Color(0xFF22C55E).copy(alpha = 0.10f)
+                    Color(0xFF38BDF8).copy(alpha = 0.22f),
+                    Color(0xFF22C55E).copy(alpha = 0.12f)
                 )
             )
         } else {
-            // Neutral frosted glass
             Brush.linearGradient(
                 colors = listOf(
-                    Color.White.copy(alpha = 0.10f),
-                    Color.White.copy(alpha = 0.03f)
+                    Color.White.copy(alpha = 0.12f),
+                    Color.White.copy(alpha = 0.04f)
                 )
             )
         }
@@ -76,18 +81,21 @@ fun GlassButton(
                 scaleY = scale
                 shape = CircleShape
                 clip = true
+                shadowElevation = 18f
+                ambientShadowColor = Color.Black.copy(alpha = 0.45f)
+                spotShadowColor = Color.Black.copy(alpha = 0.60f)
             }
             .background(backgroundBrush)
             .border(
-                BorderStroke(1.dp, borderColor),
+                BorderStroke(1.3.dp, borderColor),
                 shape = CircleShape
             )
             .clickable(
                 interactionSource = interactionSource,
-                indication = null, // custom visual feedback only
+                indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = 22.dp, vertical = 10.dp),
+            .padding(horizontal = 22.dp, vertical = 11.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -101,7 +109,8 @@ fun GlassButton(
 }
 
 /**
- * Glass role selection card used on the RoleSelectScreen.
+ * GLASS CARD (Used in RoleSelectScreen)
+ * Enhances visual consistency across the whole app.
  */
 @Composable
 fun GlassRoleCard(
@@ -120,12 +129,12 @@ fun GlassRoleCard(
 
     val backgroundBrush = Brush.linearGradient(
         colors = listOf(
-            Color.White.copy(alpha = 0.05f),
-            Color.White.copy(alpha = 0.015f)
+            Color.White.copy(alpha = 0.08f),
+            Color.White.copy(alpha = 0.03f)
         )
     )
 
-    val borderColor = Color.White.copy(alpha = 0.14f)
+    val borderColor = Color.White.copy(alpha = 0.16f)
 
     Box(
         modifier = modifier
@@ -134,6 +143,7 @@ fun GlassRoleCard(
                 scaleY = scale
                 shape = RoundedCornerShape(18.dp)
                 clip = true
+                shadowElevation = 14f
             }
             .background(backgroundBrush)
             .border(
@@ -152,7 +162,7 @@ fun GlassRoleCard(
             Text(
                 text = title,
                 color = Color.White,
-                fontSize = 16.sp,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.padding(top = 2.dp))

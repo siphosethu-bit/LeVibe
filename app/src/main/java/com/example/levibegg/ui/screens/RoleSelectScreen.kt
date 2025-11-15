@@ -1,7 +1,12 @@
 package com.example.levibegg.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,10 +32,14 @@ fun RoleSelectScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF02030A).copy(alpha = 0.9f)) // subtle dark overlay
+                .background(Color(0xFF02030A).copy(alpha = 0.2f)) // subtle global dark base
         ) {
-            // 1) Background video
-            RoleGateVideoBackground(blurX = 45f, blurY = 45f)
+            // 1) Background video (blurred + dim overlay inside the composable)
+            RoleGateVideoBackground(
+                modifier = Modifier.fillMaxSize(),
+                blurRadius = 45f,        // tweak: 30f (softer) – 60f (more blur)
+                dimOverlayAlpha = 0.55f  // tweak: 0.4 lighter, 0.7 darker
+            )
 
             // 2) Foreground content, centered
             Column(
