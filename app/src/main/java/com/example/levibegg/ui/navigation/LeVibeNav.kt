@@ -9,20 +9,20 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.levibegg.ui.screens.ArtistDashboardScreen
 import com.example.levibegg.ui.screens.ArtistsScreen
-import com.example.levibegg.ui.screens.EventsMapScreen
+import com.example.levibegg.ui.screens.ExploreEventsScreen
 import com.example.levibegg.ui.screens.LandingScreen
 import com.example.levibegg.ui.screens.OrganizerDashboardScreen
 import com.example.levibegg.ui.screens.RoleSelectScreen
-import com.example.levibegg.ui.components.GlassButton
-import com.example.levibegg.ui.components.GlassRoleCard
-
 
 // All routes for the app
 sealed class Screen(val route: String) {
     data object Landing : Screen("landing")
     data object RoleSelect : Screen("role_select")
-    data object EventsMap : Screen("events_map")
-    data object Artists : Screen("artists")                // Artists list
+
+    // User explore screen (Figma-style)
+    data object ExploreEvents : Screen("explore_events")
+
+    data object Artists : Screen("artists")
     data object ArtistDashboard : Screen("artist_dashboard")
     data object OrganizerDashboard : Screen("organizer_dashboard")
 }
@@ -52,12 +52,12 @@ fun LeVibeNav(
             )
         }
 
-        // Choose role
+        // Role gate: "Who are you?"
         composable(Screen.RoleSelect.route) {
             RoleSelectScreen(
-                // "I'm looking for events" → map view
+                // "I'm looking for events" → explore screen
                 onSelectSeeker = {
-                    navController.navigate(Screen.EventsMap.route)
+                    navController.navigate(Screen.ExploreEvents.route)
                 },
                 // "I'm an Artist" → artist dashboard
                 onSelectArtist = {
@@ -70,11 +70,13 @@ fun LeVibeNav(
             )
         }
 
-        // Map + events (guest view)
-        composable(Screen.EventsMap.route) {
-            EventsMapScreen(
-                onArtistsClick = { navController.navigate(Screen.Artists.route) },
-                onBack = { navController.popBackStack() }
+        // 🎟 User explore page (Figma-style)
+        composable(Screen.ExploreEvents.route) {
+            ExploreEventsScreen(
+                onProfileClick = {
+                    // later: navigate to profile screen if you add one
+                    // navController.navigate("profile")
+                }
             )
         }
 
