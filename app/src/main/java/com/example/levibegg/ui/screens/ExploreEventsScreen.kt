@@ -71,7 +71,6 @@ import com.google.maps.android.compose.rememberCameraPositionState
 
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.format.TextStyle
 import java.util.Locale
 
 /* -------------------------------------------------------------------------- */
@@ -385,7 +384,8 @@ private fun ExploreEventsListContent(
 
         ForYouCard()
 
-        Spacer(modifier = Modifier.height(24.dp))
+        // ⬇️ smaller spacer so gradient card hugs the bottom more
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
@@ -432,7 +432,8 @@ private fun FeaturedEventCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(210.dp)
+                // ⬆️ increased height
+                .height(240.dp)
                 .clip(RoundedCornerShape(26.dp))
         ) {
             Image(
@@ -521,6 +522,8 @@ private fun ForYouCard() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            // ⬆️ give the gradient card more height
+            .height(140.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(
                 Brush.horizontalGradient(
@@ -531,7 +534,7 @@ private fun ForYouCard() {
                     )
                 )
             )
-            .padding(horizontal = 16.dp, vertical = 18.dp)
+            .padding(horizontal = 16.dp, vertical = 22.dp)
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -1412,7 +1415,11 @@ private fun EventsCalendarScreen(
     var currentMonth by remember { mutableStateOf(YearMonth.from(today)) }
     var selectedDate by remember { mutableStateOf<LocalDate?>(today) }
 
-    val monthTitle = currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+    val monthTitle =
+        currentMonth.month.getDisplayName(
+            java.time.format.TextStyle.FULL,
+            Locale.getDefault()
+        )
     val year = currentMonth.year
 
     // Map of LocalDate -> events on that date
@@ -1565,12 +1572,14 @@ private fun EventsCalendarScreen(
                                         Color(0xFFEC4899)
                                     )
                                 )
+
                                 isSelected -> Brush.verticalGradient(
                                     listOf(
                                         Color(0xFF111827),
                                         Color(0xFF02030A)
                                     )
                                 )
+
                                 else -> null
                             }
 
@@ -1624,9 +1633,9 @@ private fun EventsCalendarScreen(
 
         selectedDate?.let { date ->
             val dayLabel =
-                "${date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())} " +
+                "${date.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault())} " +
                         "${date.dayOfMonth} " +
-                        date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                        date.month.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault())
 
             Text(
                 text = dayLabel,

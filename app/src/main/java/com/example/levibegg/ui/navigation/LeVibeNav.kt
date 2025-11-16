@@ -46,9 +46,6 @@ fun LeVibeNav(
                 onGetStarted = {
                     navController.navigate(Screen.RoleSelect.route)
                 },
-                onHowItWorks = {
-                    navController.navigate(Screen.RoleSelect.route)
-                }
             )
         }
 
